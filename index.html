@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Juego de Penaltis</title>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
+  <style>
+    body { margin: 0; padding: 0; }
+    canvas { display: block; margin: 0 auto; }
+  </style>
+</head>
+<body>
+  <script>
+    const config = {
+      type: Phaser.AUTO,
+      width: 400,
+      height: 600,
+      backgroundColor: '#87CEEB',
+      physics: {
+        default: 'arcade',
+        arcade: {
+          debug: false
+        }
+      },
+      scene: {
+        preload,
+        create,
+        update
+      }
+    };
+
+    const game = new Phaser.Game(config);
+
+    let ball;
+    let goalkeeper;
+    let shot = false;
+    let resultText;
+
+    function preload() {
+      this.load.image('field', 'https://i.imgur.com/LrjACec.png');
+      this.load.image('ball', 'https://i.imgur.com/2R8gNHG.png');
+      this.load.image('goalkeeper', 'https://i.imgur.com/yF2i6w7.png');
+    }
+
+    function create() {
+      this.add.image(200, 300, 'field').setScale(0.5);
+
+      ball = this.physics.add.image(200, 500, 'ball').setScale(0.1);
+      ball.setCollideWorldBounds(true);
+
+      goalkeeper = this.physics.add.image(200, 150, 'goalkeeper').setScale(0.3);
+      goalkeeper.setImmovable(true);
+
+      resultText = this.add.text(100, 250, '', { fontSize: '32px', fill: '#fff' });
+
+      this.input.on('pointerdown', shootBall, this);
+
+      moveGoalkeeper(this);
+    }
+
+    function update() {
+      if (shot && ball.y < 160) {
+        shot = false;
+        checkGoal(this);
+      }
+    }
+
+    function shootBall() {
+      if (!shot) {
+        ball.setVelocityY(-300);
+        shot = true;
+      }
+    }
+
+    function moveGoalkeeper(scene) {
+      scene.time.addEvent({
+        delay: 1000,
+        loop: true,
+        callback: () => {
+          const positions = [100, 200, 300];
+          const randomX = Phaser.Utils.Array.GetRandom(positions);
+          goalkeeper.x = randomX;
+        }
+      });
+    }
+
+    function checkGoal(scene) {
+      ball.setVelocity(0);
+
+      if (Math.abs(ball.x - goalkeeper.x) < 50) {
+        resultText.setText('¡Atajado!');
+      } else {
+        resultText.setText('¡GOL!');
+      }
+
+      scene.time.delayedCall(1500, () => {
+        ball.y = 500;
+        ball.x = 200;
+        resultText.setText('');
+      });
+    }
+  </script>
+</body>
+</html>
